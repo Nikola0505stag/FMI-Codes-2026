@@ -1,6 +1,4 @@
-# AI Voice Detector 
-
-# Backend
+# AI Voice Detector Backend
 
 FastAPI API for voice classification (`.wav` in, JSON out).
 
