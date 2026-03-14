@@ -113,6 +113,12 @@ export default function App() {
         </section>
 
         <DropZone />
+
+      <footer className="footer">
+        <p>© 2026 AudioVerify. All rights reserved.</p>
+        <p className="fmi-tag">Built with ❤️ for FMI Hackathon</p>
+      </footer>
+	  
       </main>
     </div>
   );

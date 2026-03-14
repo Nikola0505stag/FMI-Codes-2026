@@ -88,7 +88,8 @@ body {
 .main {
   max-width: 800px;
   margin: 0 auto;
-  padding: 5rem 2rem 4rem;
+  padding: 5rem 2rem 1rem;
+  min-height: auto;
 }
 
 /* Hero */
@@ -226,4 +227,85 @@ body {
 .browse-btn:hover {
   background: var(--gray-50);
   border-color: var(--gray-400);
+}
+
+.how-it-works-container {
+  margin-top: 50px;
+  padding: 0 20px;
+}
+
+.section-title {
+  font-size: 1.8rem;
+  color: #000000;
+  margin-bottom: 35px;
+  text-align: center;
+  font-weight: 400;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-bottom: 50px;
+}
+
+.step-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 30px;
+  transition: all 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-8px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: #6366f1; /* Лилав цвят при hover */
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);
+}
+
+.step-num {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.15);
+  width: fit-content;
+  padding: 5px 15px;
+  border-radius: 50px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.step-card h3 {
+  color: #000000;
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+
+.step-card p {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.footer {
+  margin-top: 50px;
+  padding: 20px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  text-align: center;
+  width: 100%;
+}
+
+.footer p {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 5px 0;
+}
+
+.fmi-tag {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: #64748b;
 }

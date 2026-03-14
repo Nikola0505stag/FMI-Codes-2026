@@ -29,12 +29,42 @@ export default function About({ onBack }) {
             AI-generated misinformation by providing a tool that detects 
             synthetic audio with high accuracy.
           </p>
-          
-          <div style={{ marginTop: '40px' }}>
-             <button className="browse-btn" onClick={onBack}>
-               Back to Analyzer
-             </button>
-          </div>
+
+		<div className="how-it-works-container">
+		  <h2 className="section-title">How it works</h2>
+		  <div className="steps-grid">
+			<div className="step-card">
+			  <div className="step-num">01</div>
+			  <h3>Upload Audio</h3>
+			  <p>Select or drag and drop your MP3/WAV file into the secure analyzer zone.</p>
+			</div>
+			
+			<div className="step-card">
+			  <div className="step-num">02</div>
+			  <h3>AI Processing</h3>
+			  <p>Our deep learning model extracts features like mel-spectrograms to detect anomalies.</p>
+			</div>
+			
+			<div className="step-card">
+			  <div className="step-num">03</div>
+			  <h3>Instant Report</h3>
+			  <p>Get a probability score showing if the voice is human or AI-generated.</p>
+			</div>
+		  </div>
+		</div>
+
+      
+      <div style={{ marginTop: '40px' }}>
+        <button className="browse-btn" onClick={onBack}>
+          Back to Analyzer
+        </button>
+      </div>
+
+      <footer className="footer">
+        <p>© 2026 AudioVerify. All rights reserved.</p>
+        <p className="fmi-tag">Built with ❤️ for FMI Hackathon</p>
+      </footer>
+
         </section>
       </main>
     </div>
