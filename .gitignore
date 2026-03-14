@@ -25,3 +25,5 @@ frontend/package-lock.json
 backend/venv/
 
 .wav
+app/.idea/
+
