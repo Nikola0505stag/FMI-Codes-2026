@@ -23,3 +23,5 @@ node_modules/
 ../.gitignore.swp
 frontend/package-lock.json
 backend/venv/
+
+.wav
