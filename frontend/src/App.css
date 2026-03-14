@@ -475,3 +475,32 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+.timeline-wrap {
+    margin-top: 1rem;
+}
+
+.timeline-bar {
+    position: relative;
+    height: 12px;
+    border-radius: 100px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
+    overflow: hidden;
+}
+
+.timeline-segment {
+    position: absolute;
+    top: 0;
+    height: 100%;
+}
+
+.timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.3rem;
+    font-size: 11px;
+    font-family: system-ui, sans-serif;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+}

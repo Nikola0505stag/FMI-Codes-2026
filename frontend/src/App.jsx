@@ -134,6 +134,9 @@ function DropZone() {
  
             {error && <p className="error-text">{error}</p>}
  
+
+                
+
             {prediction && (
                 <>
                     <section className="result-card">
@@ -146,6 +149,43 @@ function DropZone() {
                         </p>
                     </section>
  
+ 
+                            {prediction.suspicious_parts && prediction.suspicious_parts.length > 0 && (() => {
+    const totalDuration = Math.max(...prediction.suspicious_parts.map(p => p.end_sec));
+    return (
+        <div className="timeline-wrap">
+            <div className="timeline-bar">
+                {prediction.suspicious_parts.map((part, i) => {
+                    const left = (part.start_sec / totalDuration) * 100;
+                    const width = ((part.end_sec - part.start_sec) / totalDuration) * 100;
+                    const alpha = part.score >= 0.75
+                        ? 0.3 + (part.score - 0.75) / 0.25 * 0.7
+                        : part.score / 0.75 * 0.15;
+                    return (
+                        <div
+                            key={i}
+                            className="timeline-segment"
+                            style={{
+                                left: `${left}%`,
+                                width: `${width}%`,
+                                background: `rgba(159, 45, 45, ${alpha})`,
+                            }}
+                            title={`${part.start_sec.toFixed(2)}s – ${part.end_sec.toFixed(2)}s · ${Math.round(part.score * 100)}% AI`}
+                        />
+                    );
+                })}
+            </div>
+            <div className="timeline-labels">
+                <span>0s</span>
+                <span>{totalDuration.toFixed(2)}s</span>
+            </div>
+        </div>
+    );
+})()}
+
+
+
+
                     {prediction.suspicious_parts && prediction.suspicious_parts.length > 0 && (
                         <section className="suspicious-section">
                             <p className="suspicious-heading">Suspicious segments</p>
