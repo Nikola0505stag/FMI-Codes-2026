@@ -21,6 +21,11 @@ class Settings(BaseModel):
     model_target_sr: int = int(os.getenv("MODEL_TARGET_SR", "16000"))
     model_target_duration_sec: float = float(os.getenv("MODEL_TARGET_DURATION_SEC", "3.0"))
     model_device: str = os.getenv("MODEL_DEVICE", "cpu")
+    cors_allow_origins: tuple[str, ...] = tuple(
+        origin.strip()
+        for origin in os.getenv("CORS_ALLOW_ORIGINS", "*").split(",")
+        if origin.strip()
+    )
 
 
 @lru_cache(maxsize=1)

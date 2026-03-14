@@ -1,9 +1,12 @@
 import { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useAudioRecorder, AudioModule, RecordingPresets } from 'expo-audio';
 import * as DocumentPicker from 'expo-document-picker';
 
-const BACKEND_URL = 'http://172.20.10.11:8000/predict';
+const BACKEND_URL = Platform.select({
+    web: 'http://127.0.0.1:8000/predict',
+    default: 'http://172.20.10.11:8000/predict',
+}) as string;
 
 export default function HomeScreen() {
     const [isProtected, setIsProtected] = useState(false);
@@ -28,12 +31,25 @@ export default function HomeScreen() {
         }, 3000);
     }
 
-    async function sendAudio(uri: string, fileName: string, fileType: string) {
+    async function sendAudio(
+        uri: string | null,
+        fileName: string,
+        fileType: string,
+        webFile?: File,
+    ) {
         const formData = new FormData();
-        formData.append('file', { uri, name: fileName, type: fileType } as any);
+        if (webFile) {
+            formData.append('file', webFile, fileName);
+        } else if (uri) {
+            formData.append('file', { uri, name: fileName, type: fileType } as any);
+        } else {
+            setStatus('Missing file data');
+            return;
+        }
+
         try {
             const response = await fetch(BACKEND_URL, { method: 'POST', body: formData });
-            const result = await response.json();
+            const result = await response.json().catch(() => ({}));
 
             if (!response.ok) {
                 setStatus(`Backend error: ${result?.detail || response.status}`);
@@ -76,7 +92,12 @@ export default function HomeScreen() {
             }
 
             setStatus('Uploading WAV...');
-            await sendAudio(picked.uri, name, picked.mimeType || 'audio/wav');
+            const webFile = (picked as any).file as File | undefined;
+            if (Platform.OS === 'web' && webFile) {
+                await sendAudio(null, name, picked.mimeType || 'audio/wav', webFile);
+            } else {
+                await sendAudio(picked.uri, name, picked.mimeType || 'audio/wav');
+            }
         } catch (e) {
             console.log('File picker error:', e);
             setStatus('Could not pick file');
