@@ -11,6 +11,8 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.sqrt
+import okhttp3.MultipartBody
+
 
 class AudioCaptureManager {
     private var audioRecord: AudioRecord? = null
@@ -21,12 +23,9 @@ class AudioCaptureManager {
     private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
     private val SILENCE_THRESHOLD = 500.0
 
-    // 1. Инициализираме HTTP клиента
     private val client = OkHttpClient()
 
-    // ВАЖНО: Тук ще сложите IP адреса на лаптопа на бекенд човека (напр. 192.168.1.5:8000)
-    // Засега слагаме локалния хост на емулатора
-    private val BACKEND_URL = "http://10.108.6.198/:8000/predict"
+    private val BACKEND_URL = "http://10.108.6.198:8000/predict"
     @SuppressLint("MissingPermission")
     fun startRecording() {
         val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
@@ -83,32 +82,60 @@ class AudioCaptureManager {
         return sqrt(mean)
     }
 
-    // 3. Функцията, която опакова аудиото и го праща през Интернет
     private fun sendChunkToBackend(shortArray: ShortArray) {
-        // Превръщаме числата (Short) в сурови байтове (ByteArray), които сървърът разбира
-        val byteBuffer = ByteBuffer.allocate(shortArray.size * 2)
-        byteBuffer.order(ByteOrder.LITTLE_ENDIAN)
-        byteBuffer.asShortBuffer().put(shortArray)
-        val byteArray = byteBuffer.array()
+        // Превръщаме PCM в истински WAV файл
+        val pcmBytes = ByteBuffer.allocate(shortArray.size * 2)
+        pcmBytes.order(ByteOrder.LITTLE_ENDIAN)
+        pcmBytes.asShortBuffer().put(shortArray)
+        val pcmArray = pcmBytes.array()
 
-        // Опаковаме ги в заявка
-        val requestBody = RequestBody.create("application/octet-stream".toMediaTypeOrNull(), byteArray)
+        val wavBytes = addWavHeader(pcmArray, sampleRate)
+
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "file",           // името което FastAPI очаква
+                "audio.wav",
+                RequestBody.create("audio/wav".toMediaTypeOrNull(), wavBytes)
+            )
+            .build()
+
         val request = Request.Builder()
             .url(BACKEND_URL)
             .post(requestBody)
             .build()
 
-        // Изпращаме заявката асинхронно (за да не блокираме микрофона)
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e("AudioPipeline", "Грешка при връзка със сървъра: ${e.message}")
+                Log.e("AudioPipeline", "Грешка: ${e.message}")
             }
-
             override fun onResponse(call: Call, response: Response) {
-                val responseBody = response.body?.string()
-                Log.d("AudioPipeline", "Отговор от сървъра: $responseBody")
-                // TODO: Утре ще вържем този отговор да променя текста на екрана!
+                Log.d("AudioPipeline", "Отговор: ${response.body?.string()}")
             }
         })
+    }
+
+    private fun addWavHeader(pcmData: ByteArray, sampleRate: Int): ByteArray {
+        val totalDataLen = pcmData.size + 36
+        val byteRate = sampleRate * 2 // mono * 16bit
+        val buffer = ByteBuffer.allocate(44 + pcmData.size)
+        buffer.order(ByteOrder.LITTLE_ENDIAN)
+
+        buffer.put("RIFF".toByteArray())
+        buffer.putInt(totalDataLen)
+        buffer.put("WAVE".toByteArray())
+        buffer.put("fmt ".toByteArray())
+        buffer.putInt(16)
+        buffer.putShort(1)  // PCM
+        buffer.putShort(1)  // Mono
+        buffer.putInt(sampleRate)
+        buffer.putInt(byteRate)
+        buffer.putShort(2)  // block align
+        buffer.putShort(16) // bits per sample
+        buffer.put("data".toByteArray())
+        buffer.putInt(pcmData.size)
+        buffer.put(pcmData)
+
+        return buffer.array()
     }
 }
