@@ -49,7 +49,7 @@ function DropZone() {
         formData.append("file", file);
  
         try {
-            const response = await fetch("/predict", {
+            const response = await fetch("https://fmi-code-2026.onrender.com/predict", {
                 method: "POST",
                 body: formData,
             });
@@ -149,7 +149,7 @@ function DropZone() {
                         </p>
                     </section>
  
- 
+
                             {prediction.suspicious_parts && prediction.suspicious_parts.length > 0 && (() => {
     const totalDuration = Math.max(...prediction.suspicious_parts.map(p => p.end_sec));
     return (
@@ -208,7 +208,7 @@ function DropZone() {
                                             <div className="suspicious-image-wrap">
                                                 <p className="suspicious-image-label">Mel Spectrogram</p>
                                                 <img
-                                                    src={part.mel_image_url}
+                                                    src={`https://fmi-code-2026.onrender.com${part.mel_image_url}`}
                                                     alt={`Mel spectrogram segment ${i + 1}`}
                                                     className="suspicious-img"
                                                 />
@@ -216,7 +216,7 @@ function DropZone() {
                                             <div className="suspicious-image-wrap">
                                                 <p className="suspicious-image-label">MFCC</p>
                                                 <img
-                                                    src={part.mfcc_image_url}
+                                                    src={`https://fmi-code-2026.onrender.com${part.mfcc_image_url}`}
                                                     alt={`MFCC segment ${i + 1}`}
                                                     className="suspicious-img"
                                                 />
