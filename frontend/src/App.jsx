@@ -1,65 +1,68 @@
 import { useState } from "react";
 import "./App.css";
 import About from "./About";
-
+ 
 function DropZone() {
     const [dragging, setDragging] = useState(false);
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [prediction, setPrediction] = useState(null);
     const [error, setError] = useState("");
-
+ 
     const handleDragOver = (e) => {
         e.preventDefault();
         setDragging(true);
     };
-
+ 
     const handleDragLeave = () => setDragging(false);
-
+ 
     const handleDrop = (e) => {
         e.preventDefault();
         setDragging(false);
         const dropped = e.dataTransfer.files[0];
-
+ 
         if (dropped) {
             setFile(dropped);
             setPrediction(null);
             setError("");
         }
     };
-
+ 
     const handleFileInput = (e) => {
         const selected = e.target.files[0];
-
+ 
         if (selected) {
             setFile(selected);
             setPrediction(null);
             setError("");
         }
     };
-
+ 
     const handleAnalyze = async () => {
         if (!file) return;
-
+ 
         setLoading(true);
         setError("");
         setPrediction(null);
-
+ 
         const formData = new FormData();
         formData.append("file", file);
-
+ 
         try {
             const response = await fetch("/predict", {
                 method: "POST",
                 body: formData,
             });
-
+ 
             const payload = await response.json().catch(() => ({}));
-
+            console.log("API response:", payload);  // add this
+            setPrediction(payload);
+            
+ 
             if (!response.ok) {
                 throw new Error(payload.detail || "Upload failed. Please try again.");
             }
-
+ 
             setPrediction(payload);
         } catch (requestError) {
             setError(requestError.message || "Unable to reach backend.");
@@ -67,7 +70,7 @@ function DropZone() {
             setLoading(false);
         }
     };
-
+ 
     return (
         <>
             <div
@@ -83,7 +86,7 @@ function DropZone() {
                     className="file-input"
                     onChange={handleFileInput}
                 />
-
+ 
                 {!file ? (
                     <>
                         <div className="drop-icon">
@@ -128,31 +131,75 @@ function DropZone() {
                     </>
                 )}
             </div>
-
+ 
             {error && <p className="error-text">{error}</p>}
-
+ 
             {prediction && (
-                <section className="result-card">
-                    <p className="result-title">Detection Result</p>
-                    <p className={`result-status ${prediction.status === "ai" ? "result-status--ai" : "result-status--real"}`}>
-                        {String(prediction.status || "unknown").toUpperCase()}
-                    </p>
-                    <p className="result-accuracy">
-                        Confidence: {Math.round(Number(prediction.accuracy || 0) * 100)}%
-                    </p>
-                </section>
+                <>
+                    <section className="result-card">
+                        <p className="result-title">Detection Result</p>
+                        <p className={`result-status ${prediction.status === "ai" ? "result-status--ai" : "result-status--real"}`}>
+                            {String(prediction.status || "unknown").toUpperCase()}
+                        </p>
+                        <p className="result-accuracy">
+                            Confidence: {Math.round(Number(prediction.accuracy || 0) * 100)}%
+                        </p>
+                    </section>
+ 
+                    {prediction.suspicious_parts && prediction.suspicious_parts.length > 0 && (
+                        <section className="suspicious-section">
+                            <p className="suspicious-heading">Suspicious segments</p>
+                            <p className="suspicious-sub">
+                                The model flagged {prediction.suspicious_parts.length} segment{prediction.suspicious_parts.length > 1 ? "s" : ""} as likely AI-generated.
+                            </p>
+                            <div className="suspicious-list">
+                                {prediction.suspicious_parts.map((part, i) => (
+                                    <div key={i} className="suspicious-card">
+                                        <div className="suspicious-card-header">
+                                            <span className="suspicious-index">Segment {i + 1}</span>
+                                            <span className="suspicious-time">
+                                                {part.start_sec.toFixed(2)}s – {part.end_sec.toFixed(2)}s
+                                            </span>
+                                            <span className="suspicious-score">
+                                                Score: {Math.round(part.score * 100)}%
+                                            </span>
+                                        </div>
+                                        <div className="suspicious-images">
+                                            <div className="suspicious-image-wrap">
+                                                <p className="suspicious-image-label">Mel Spectrogram</p>
+                                                <img
+                                                    src={part.mel_image_url}
+                                                    alt={`Mel spectrogram segment ${i + 1}`}
+                                                    className="suspicious-img"
+                                                />
+                                            </div>
+                                            <div className="suspicious-image-wrap">
+                                                <p className="suspicious-image-label">MFCC</p>
+                                                <img
+                                                    src={part.mfcc_image_url}
+                                                    alt={`MFCC segment ${i + 1}`}
+                                                    className="suspicious-img"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                </>
             )}
         </>
     );
 }
-
+ 
 export default function App() {
     const [currentPage, setCurrentPage] = useState("home");
-
+ 
     if (currentPage === "about") {
         return <About onBack={() => setCurrentPage("home")} />;
     }
-
+ 
     return (
         <div className="app">
             <header className="header">
@@ -182,7 +229,7 @@ export default function App() {
                     </nav>
                 </div>
             </header>
-
+ 
             <main className="main">
                 <section className="hero">
                     <p className="hero-badge">AI Detection</p>
@@ -192,9 +239,9 @@ export default function App() {
                         generated by AI or recorded by a human.
                     </p>
                 </section>
-
+ 
                 <DropZone />
-
+ 
                 <footer className="footer">
                     <p>© 2026 AudioVerify. All rights reserved.</p>
                     <p className="fmi-tag">Built with ❤️ for FMI Hackathon</p>
