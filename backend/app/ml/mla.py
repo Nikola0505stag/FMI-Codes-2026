@@ -80,10 +80,21 @@ class MLA:
     def _candidate_model_dirs(self) -> list[Path]:
         backend_root = Path(__file__).resolve().parents[2]
         candidates: list[Path] = []
+
         if self.settings.model_dir:
             candidates.append(Path(self.settings.model_dir))
+
+        # Known local layouts used in this repository.
         candidates.append(backend_root / "model" / "trained_model")
+        candidates.append(backend_root / "model" / "cache" / "release_model" / "kaggle" / "working" / "trained_model")
         candidates.append(backend_root / "trained_model")
+
+        # Discover additional nested local model dirs under backend/model.
+        model_root = backend_root / "model"
+        if model_root.exists():
+            discovered = sorted({p.parent for p in model_root.rglob("config.json")})
+            candidates.extend(discovered)
+
         return candidates
 
     def _looks_like_hf_model_dir(self, model_dir: Path) -> bool:
@@ -98,6 +109,14 @@ class MLA:
 
         if extract_dir.exists() and self._looks_like_hf_model_dir(extract_dir):
             return extract_dir
+
+        # If a previous extraction already contains a nested valid model dir,
+        # reuse it instead of deleting and extracting every startup.
+        if extract_dir.exists():
+            for config_path in extract_dir.rglob("config.json"):
+                candidate = config_path.parent
+                if self._looks_like_hf_model_dir(candidate):
+                    return candidate
 
         if extract_dir.exists():
             shutil.rmtree(extract_dir)
