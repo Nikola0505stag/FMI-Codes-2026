@@ -26,4 +26,8 @@ backend/venv/
 
 .wav
 app/.idea/
+app/app/build.gradle.kts
+app/gradle.properties
+app/gradle/gradle-daemon-jvm.properties
+app/gradle/libs.versions.toml
 
