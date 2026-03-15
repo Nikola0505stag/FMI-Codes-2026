@@ -37,10 +37,24 @@ def _decode_wav_to_mono_float(wav_bytes: bytes) -> tuple[np.ndarray, int]:
         samples = (samples - 128.0) / 128.0
     elif sample_width == 2:
         samples = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
+    elif sample_width == 3:
+        raw_u8 = np.frombuffer(raw, dtype=np.uint8)
+        usable = (raw_u8.size // 3) * 3
+        raw_u8 = raw_u8[:usable].reshape(-1, 3)
+
+        # Convert little-endian 24-bit PCM to signed int32, then normalize.
+        int_samples = (
+            raw_u8[:, 0].astype(np.int32)
+            | (raw_u8[:, 1].astype(np.int32) << 8)
+            | (raw_u8[:, 2].astype(np.int32) << 16)
+        )
+        sign_mask = 1 << 23
+        int_samples = (int_samples ^ sign_mask) - sign_mask
+        samples = int_samples.astype(np.float32) / 8388608.0
     elif sample_width == 4:
         samples = np.frombuffer(raw, dtype=np.int32).astype(np.float32) / 2147483648.0
     else:
-        raise HTTPException(status_code=400, detail="Only 8/16/32-bit WAV is supported.")
+        raise HTTPException(status_code=400, detail="Only 8/16/24/32-bit WAV is supported.")
 
     if samples.size == 0:
         raise HTTPException(status_code=400, detail="Uploaded WAV has no audio samples.")
